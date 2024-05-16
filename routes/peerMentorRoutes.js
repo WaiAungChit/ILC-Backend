@@ -1,7 +1,7 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const peerMentorController = require('../controllers/peerMentorController');
-const isAdmin = require('../middlewares/isAdmin');
+const peerMentorController = require("../controllers/peerMentorController");
+const isAdmin = require("../middlewares/isAdmin");
 
 /**
  * @swagger
@@ -57,8 +57,54 @@ const isAdmin = require('../middlewares/isAdmin');
  * /api/peerMentors:
  *   get:
  *     tags: [PeerMentors]
- *     summary: Get all peer mentors with pagination
- *     description: Retrieve a list of all peer mentors, paginated.
+ *     summary: Get peer mentors with optional filtering
+ *     description: Retrieve a list of peer mentors with optional filtering by day and time.
+ *     parameters:
+ *       - in: query
+ *         name: day
+ *         required: false
+ *         description: Filter peer mentors by day (e.g., Monday, Tuesday).
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: time
+ *         required: false
+ *         description: Filter peer mentors by time (e.g., 09:00, 14:00).
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         description: Limit the number of results returned.
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: A list of peer mentors.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/PeerMentor'
+ *                 total:
+ *                   type: integer
+ *       400:
+ *         description: Bad request. This can happen if the limit is not a positive integer.
+ *       500:
+ *         description: Server error.
+ */
+
+/**
+ * @swagger
+ * /api/peerMentors/paginated:
+ *   get:
+ *     tags: [PeerMentors]
+ *     summary: Get paginated peer mentors with optional filtering
+ *     description: Retrieve a list of paginated peer mentors with optional filtering by day and time.
  *     parameters:
  *       - in: query
  *         name: page
@@ -72,15 +118,27 @@ const isAdmin = require('../middlewares/isAdmin');
  *         description: The number of records per page. Defaults to 10 if not provided. Maximum is 30.
  *         schema:
  *           type: integer
+ *       - in: query
+ *         name: day
+ *         required: false
+ *         description: Filter peer mentors by day (e.g., Monday, Tuesday).
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: time
+ *         required: false
+ *         description: Filter peer mentors by time (e.g., 09:00, 14:00).
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
- *         description: A list of peer mentors for the requested page.
+ *         description: A list of paginated peer mentors.
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 data:
+ *                 items:
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/PeerMentor'
@@ -88,7 +146,10 @@ const isAdmin = require('../middlewares/isAdmin');
  *                   type: integer
  *       400:
  *         description: Bad request. This can happen if the page or pageSize is not a positive integer.
+ *       500:
+ *         description: Server error.
  */
+
 /**
  * @swagger
  * /api/peerMentors/{id}:
@@ -195,14 +256,17 @@ const isAdmin = require('../middlewares/isAdmin');
  *         description: Bad request. This can happen if the time or day is not provided.
  */
 
-router.route('/')
+router
+    .route("/")
     .post(isAdmin, peerMentorController.createPeerMentor)
     .get(peerMentorController.getPeerMentors);
 
-router.route('/filter')
-    .get(peerMentorController.getPeerMentorsByTimeAndDay);
+router.route("/paginated").get(peerMentorController.getPaginatedPeerMentors);
 
-router.route('/:id')
+router.route("/filter").get(peerMentorController.getPeerMentorsByTimeAndDay);
+
+router
+    .route("/:id")
     .get(peerMentorController.getPeerMentor)
     .put(isAdmin, peerMentorController.updatePeerMentor)
     .delete(isAdmin, peerMentorController.deletePeerMentor);
