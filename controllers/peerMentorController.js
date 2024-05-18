@@ -10,7 +10,7 @@ exports.createPeerMentor = async (req, res) => {
                 .json({ message: "Time, day, and name are required" });
         }
 
-        const result = await db.execute(
+        const [result] = await db.execute(
             "INSERT INTO peer_mentors (time, day, name) VALUES (?, ?, ?)",
             [time, day, name]
         );
