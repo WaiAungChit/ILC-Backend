@@ -9,11 +9,23 @@ exports.createPeerMentor = async (req, res) => {
                 .status(400)
                 .json({ message: "Time, day, and name are required" });
         }
-        await db.execute(
+
+        const result = await db.execute(
             "INSERT INTO peer_mentors (time, day, name) VALUES (?, ?, ?)",
             [time, day, name]
         );
-        res.status(201).json({ message: "Peer mentor created" });
+
+        const newMentorId = result.insertId;
+
+        const [newMentor] = await db.execute(
+            "SELECT * FROM peer_mentors WHERE id = ?",
+            [newMentorId]
+        );
+
+        res.status(201).json({
+            message: "Peer mentor created",
+            mentor: newMentor[0],
+        });
     } catch (error) {
         res.status(500).json({ message: "Server error", error });
     }
