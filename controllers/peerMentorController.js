@@ -1,5 +1,4 @@
 const db = require("../config/db");
-const mysql = require("mysql2");
 
 exports.createPeerMentor = async (req, res) => {
     try {
@@ -18,7 +17,7 @@ exports.createPeerMentor = async (req, res) => {
         const newMentorId = result.insertId;
 
         const [newMentor] = await db.execute(
-            "SELECT * FROM peer_mentors WHERE id = ?",
+            "SELECT id, name, day, TIME_FORMAT(time, '%H:%i') as time FROM peer_mentors WHERE id = ?",
             [newMentorId]
         );
 
