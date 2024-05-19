@@ -49,6 +49,8 @@ exports.getPeerMentors = async (req, res) => {
         query += " WHERE " + filters.join(" AND ");
     }
 
+    query += " ORDER BY id DESC";
+
     if (limit) {
         query += ` LIMIT ${limit}`;
     }
