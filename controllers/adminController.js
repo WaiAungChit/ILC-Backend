@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 const { hashPassword, comparePassword } = require('../middlewares/passwordHash');
 
+//admin signup
 exports.signup = async (req, res) => {
     const { username, password } = req.body;
     try {
@@ -19,7 +20,7 @@ exports.signup = async (req, res) => {
     }
 };
 
-//admin login
+// admin login
 exports.login = async (req, res) => {
     const { username, password } = req.body;
     try {
@@ -35,11 +36,13 @@ exports.login = async (req, res) => {
     }
 };
 
+// admin logout
 exports.logout = (req, res) => {
     // No action needed, frontend will remove the token
     res.json({ message: 'Logged out' });
 };
 
+//admin changepassword
 exports.changePassword = async (req, res) => {
     const { username, oldPassword, newPassword } = req.body;
     try {
