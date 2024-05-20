@@ -18,16 +18,20 @@ const isAdmin = require('../middlewares/isAdmin');
  *       properties:
  *         groupName:
  *           type: string
+ *           example: "BlahBlah"
  *         leaderLineID:
  *           type: string
- *         courseCode:
- *           type: string
- *         section:
+ *           example: "jojo"
+ *         courseCodeId:
  *           type: integer
+ *           example: 3  
+ *         sectionCodeId:
+ *           type: integer
+ *           example: 4 
  *         peerMentorId:
- *           type: integer
+ *           type: integer 
+ *           example: 7
  */
-
 /**
  * @swagger
  * /api/appointments:
