@@ -10,10 +10,10 @@ const isAdmin = require('../middlewares/isAdmin');
  *     Course:
  *       type: object
  *       required:
- *         - course_code
+ *         - courseCode
  *         - name
  *       properties:
- *         course_code:
+ *         courseCode:
  *           type: string
  *         name:
  *           type: string

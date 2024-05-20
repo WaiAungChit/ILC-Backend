@@ -7,7 +7,7 @@ exports.createPeerMentor = async (req, res) => {
         if (time === undefined || day === undefined || name === undefined) {
             return res.status(400).json({ message: 'Time, day, and name are required' });
         }
-        await db.execute('INSERT INTO peer_mentors (time, day, name) VALUES (?, ?, ?)', [time, day, name]);
+        await db.execute('INSERT INTO peerMentors (time, day, name) VALUES (?, ?, ?)', [time, day, name]);
         res.status(201).json({ message: 'Peer mentor created' });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error });
@@ -31,8 +31,8 @@ exports.getPeerMentors = async (req, res) => {
     const offset = (page - 1) * pageSize;
 
     try {
-        const [rows] = await db.execute(`SELECT id, time, day, name FROM peer_mentors LIMIT ${offset}, ${pageSize}`);
-        const [total] = await db.execute('SELECT COUNT(*) as count FROM peer_mentors');
+        const [rows] = await db.execute(`SELECT id, time, day, name FROM peerMentors LIMIT ${offset}, ${pageSize}`);
+        const [total] = await db.execute('SELECT COUNT(*) as count FROM peerMentors');
         const formattedRows = rows.map(row => ({
             ...row,
             time: row.time.slice(0, 5),
@@ -49,7 +49,7 @@ exports.getPeerMentors = async (req, res) => {
 exports.getPeerMentor = async (req, res) => {
     const { id } = req.params;
     try {
-        const [rows] = await db.execute('SELECT id, time, day, name FROM peer_mentors WHERE id = ?', [id]);
+        const [rows] = await db.execute('SELECT id, time, day, name FROM peerMentors WHERE id = ?', [id]);
         if (rows.length === 0) {
             return res.status(404).json({ message: 'Peer mentor not found' });
         }
@@ -69,7 +69,7 @@ exports.getPeerMentorsByTimeAndDay = async (req, res) => {
         return res.status(400).json({ message: 'Time and day are required' });
     }
     try {
-        let query = 'SELECT id, time, day, name FROM peer_mentors WHERE time = ? AND day = ?';
+        let query = 'SELECT id, time, day, name FROM peerMentors WHERE time = ? AND day = ?';
         let params = [time, day];
 
         if (name) {
@@ -104,7 +104,7 @@ exports.updatePeerMentor = async (req, res) => {
     }
 
     try {
-        const sqlQuery = 'UPDATE peer_mentors SET ' + definedFields.map(([key]) => `${key} = ?`).join(', ') + ' WHERE id = ?';
+        const sqlQuery = 'UPDATE peerMentors SET ' + definedFields.map(([key]) => `${key} = ?`).join(', ') + ' WHERE id = ?';
         const updateValues = [...definedFields.map(([key, value]) => value), id];
 
         await db.execute(sqlQuery, updateValues);
@@ -117,12 +117,12 @@ exports.updatePeerMentor = async (req, res) => {
 exports.deletePeerMentor = async (req, res) => {
     const { id } = req.params;
     try {
-        const [rows] = await db.execute('SELECT * FROM peer_mentors WHERE id = ?', [id]);
+        const [rows] = await db.execute('SELECT * FROM peerMentors WHERE id = ?', [id]);
         if (rows.length === 0) {
             return res.status(404).json({ message: 'Peer mentor not found' });
         }
 
-        await db.execute('DELETE FROM peer_mentors WHERE id = ?', [id]);
+        await db.execute('DELETE FROM peerMentors WHERE id = ?', [id]);
         res.json({ message: 'Peer mentor deleted' });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error });

@@ -6,7 +6,7 @@ exports.createSection = async (req, res) => {
         if (!section || !coursecodeId) {
             return res.status(400).json({ message: 'Section and course ID are required' });
         }
-        const [course] = await db.execute('SELECT * FROM course_codes WHERE id = ?', [coursecodeId]);
+        const [course] = await db.execute('SELECT * FROM courseCodes WHERE id = ?', [coursecodeId]);
         if (course.length === 0) {
             return res.status(404).json({ message: 'Course not found' });
         }
@@ -19,7 +19,7 @@ exports.createSection = async (req, res) => {
 
 exports.getAllSections = async (req, res) => {
     try {
-        const [rows] = await db.execute('SELECT section.*, course_codes.course_code, course_codes.name FROM section JOIN course_codes ON section.coursecodeId = course_codes.id');
+        const [rows] = await db.execute('SELECT section.*, courseCodes.courseCode, courseCodes.name FROM section JOIN courseCodes ON section.coursecodeId = courseCodes.id');
         res.json(rows);
     } catch (error) {
         res.status(500).json({ message: 'Server error', error });
@@ -29,7 +29,7 @@ exports.getAllSections = async (req, res) => {
 exports.getSection = async (req, res) => {
     try {
         const { id } = req.params;
-        const [rows] = await db.execute('SELECT section.*, course_codes.course_code, course_codes.name FROM section JOIN course_codes ON section.coursecodeId = course_codes.id WHERE section.id = ?', [id]);
+        const [rows] = await db.execute('SELECT section.*, courseCodes.courseCode, courseCodes.name FROM section JOIN courseCodes ON section.coursecodeId = courseCodes.id WHERE section.id = ?', [id]);
         if (rows.length === 0) {
             return res.status(404).json({ message: 'Section not found' });
         }
@@ -46,7 +46,7 @@ exports.updateSection = async (req, res) => {
         if (!section || !coursecodeId) {
             return res.status(400).json({ message: 'Section and course ID are required' });
         }
-        const [course] = await db.execute('SELECT * FROM course_codes WHERE id = ?', [coursecodeId]);
+        const [course] = await db.execute('SELECT * FROM courseCodes WHERE id = ?', [coursecodeId]);
         if (course.length === 0) {
             return res.status(404).json({ message: 'Course not found' });
         }
