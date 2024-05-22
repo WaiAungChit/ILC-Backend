@@ -204,7 +204,22 @@ exports.updatePeerMentor = async (req, res) => {
         ];
 
         await db.execute(sqlQuery, updateValues);
-        res.json({ message: "Peer mentor updated" });
+
+        // Retrieve the updated peer mentor
+        const [updatedPeerMentorRows] = await db.execute(
+            "SELECT id, name, DATE_FORMAT(time, '%H:%i') AS time, day FROM peerMentors WHERE id = ?",
+            [id]
+        );
+
+        if (updatedPeerMentorRows.length === 0) {
+            return res.status(404).json({ message: "Peer mentor not found" });
+        }
+
+        const updatedPeerMentor = updatedPeerMentorRows[0];
+        res.json({
+            message: "Peer mentor updated",
+            peerMentor: updatedPeerMentor,
+        });
     } catch (error) {
         res.status(500).json({ message: "Server error", error });
     }

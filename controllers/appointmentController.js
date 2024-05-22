@@ -70,7 +70,7 @@ exports.getAppointments = async (req, res) => {
                 c.courseCode, 
                 s.section, 
                 p.id as peerMentorId, 
-                p.time, 
+                DATE_FORMAT(p.time, '%H:%i') as time,
                 p.day, 
                 p.name
             FROM appointments a
@@ -211,7 +211,22 @@ exports.updateAppointment = async (req, res) => {
         ];
 
         await db.execute(sqlQuery, updateValues);
-        res.json({ message: "Appointment updated" });
+
+        // Retrieve the updated appointment
+        const [updatedAppointmentRows] = await db.execute(
+            "SELECT * FROM appointments WHERE id = ?",
+            [id]
+        );
+
+        if (updatedAppointmentRows.length === 0) {
+            return res.status(404).json({ message: "Appointment not found" });
+        }
+
+        const updatedAppointment = updatedAppointmentRows[0];
+        res.json({
+            message: "Appointment updated",
+            appointment: updatedAppointment,
+        });
     } catch (error) {
         res.status(500).json({ message: "Server error", error });
     }
