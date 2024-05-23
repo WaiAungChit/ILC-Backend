@@ -73,7 +73,6 @@ exports.getAppointments = async (req, res) => {
                 s.id as sectionId,
                 s.section, 
                 s.courseCodeId,
-                s.name as sectionName,
                 p.id as peerMentorId, 
                 DATE_FORMAT(p.time, '%H:%i') as time,
                 p.day, 
@@ -97,7 +96,6 @@ exports.getAppointments = async (req, res) => {
                 id: row.sectionId,
                 section: row.section,
                 courseCodeId: row.courseCodeId,
-                name: row.sectionName,
             },
             peerMentor: {
                 id: row.peerMentorId,
@@ -128,7 +126,6 @@ exports.getAppointment = async (req, res) => {
                 s.id as sectionId,
                 s.section, 
                 s.courseCodeId,
-                s.name as sectionName,
                 p.id as peerMentorId, 
                 DATE_FORMAT(p.time, '%H:%i') as time,
                 p.day, 
@@ -159,7 +156,6 @@ exports.getAppointment = async (req, res) => {
                 id: rows[0].sectionId,
                 section: rows[0].section,
                 courseCodeId: rows[0].courseCodeId,
-                name: rows[0].sectionName,
             },
             peerMentor: {
                 id: rows[0].peerMentorId,
@@ -253,7 +249,6 @@ exports.updateAppointment = async (req, res) => {
                 s.id as sectionId,
                 s.section, 
                 s.courseCodeId,
-                s.name as sectionName,
                 p.id as peerMentorId, 
                 DATE_FORMAT(p.time, '%H:%i') as time,
                 p.day, 
@@ -285,7 +280,6 @@ exports.updateAppointment = async (req, res) => {
                 id: updatedAppointment.sectionId,
                 section: updatedAppointment.section,
                 courseCodeId: updatedAppointment.courseCodeId,
-                name: updatedAppointment.sectionName,
             },
             peerMentor: {
                 id: updatedAppointment.peerMentorId,
