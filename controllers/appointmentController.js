@@ -67,12 +67,17 @@ exports.getAppointments = async (req, res) => {
                 a.id, 
                 a.groupName, 
                 a.leaderLineID, 
+                c.id as courseId,
                 c.courseCode, 
+                c.name as courseName,
+                s.id as sectionId,
                 s.section, 
+                s.courseCodeId,
+                s.name as sectionName,
                 p.id as peerMentorId, 
                 DATE_FORMAT(p.time, '%H:%i') as time,
                 p.day, 
-                p.name
+                p.name as peerMentorName
             FROM appointments a
             JOIN courseCodes c ON a.courseCode = c.id
             JOIN section s ON a.sectionCode = s.id
@@ -83,13 +88,22 @@ exports.getAppointments = async (req, res) => {
             id: row.id,
             groupName: row.groupName,
             leaderLineID: row.leaderLineID,
-            courseCode: row.courseCode,
-            section: row.section,
+            course: {
+                id: row.courseId,
+                courseCode: row.courseCode,
+                name: row.courseName,
+            },
+            section: {
+                id: row.sectionId,
+                section: row.section,
+                courseCodeId: row.courseCodeId,
+                name: row.sectionName,
+            },
             peerMentor: {
                 id: row.peerMentorId,
                 time: row.time,
                 day: row.day,
-                name: row.name,
+                name: row.peerMentorName,
             },
         }));
 
@@ -108,12 +122,17 @@ exports.getAppointment = async (req, res) => {
                 a.id, 
                 a.groupName, 
                 a.leaderLineID, 
+                c.id as courseId,
                 c.courseCode, 
+                c.name as courseName,
+                s.id as sectionId,
                 s.section, 
+                s.courseCodeId,
+                s.name as sectionName,
                 p.id as peerMentorId, 
-                p.time, 
+                DATE_FORMAT(p.time, '%H:%i') as time,
                 p.day, 
-                p.name
+                p.name as peerMentorName
             FROM appointments a
             JOIN courseCodes c ON a.courseCode = c.id
             JOIN section s ON a.sectionCode = s.id
@@ -127,19 +146,28 @@ exports.getAppointment = async (req, res) => {
             return res.status(404).json({ message: "Appointment not found" });
         }
 
-        const appointment = rows.map((row) => ({
-            id: row.id,
-            groupName: row.groupName,
-            leaderLineID: row.leaderLineID,
-            courseCode: row.courseCode,
-            section: row.section,
-            peerMentor: {
-                id: row.peerMentorId,
-                time: row.time,
-                day: row.day,
-                name: row.name,
+        const appointment = {
+            id: rows[0].id,
+            groupName: rows[0].groupName,
+            leaderLineID: rows[0].leaderLineID,
+            course: {
+                id: rows[0].courseId,
+                courseCode: rows[0].courseCode,
+                name: rows[0].courseName,
             },
-        }))[0];
+            section: {
+                id: rows[0].sectionId,
+                section: rows[0].section,
+                courseCodeId: rows[0].courseCodeId,
+                name: rows[0].sectionName,
+            },
+            peerMentor: {
+                id: rows[0].peerMentorId,
+                time: rows[0].time,
+                day: rows[0].day,
+                name: rows[0].peerMentorName,
+            },
+        };
 
         res.json(appointment);
     } catch (error) {
@@ -153,32 +181,34 @@ exports.updateAppointment = async (req, res) => {
         const {
             groupName,
             leaderLineID,
-            courseCode,
-            sectionCode,
+            courseCodeId,
+            sectionId,
             peerMentorId,
         } = req.body;
 
-        // Check if the provided courseCode exists
-        if (courseCode) {
+        // Check if the provided courseCodeId exists
+        if (courseCodeId !== undefined) {
             const [courseRows] = await db.execute(
-                "SELECT * FROM courseCodes WHERE courseCode = ?",
-                [courseCode]
+                "SELECT * FROM courseCodes WHERE id = ?",
+                [courseCodeId]
             );
             if (courseRows.length === 0) {
-                return res.status(400).json({ message: "Invalid courseCode" });
+                return res
+                    .status(400)
+                    .json({ message: "Invalid courseCodeId" });
             }
         }
 
-        // Check if the provided sectionCode exists and belongs to the provided courseCode
-        if (sectionCode) {
+        // Check if the provided sectionId exists and belongs to the provided courseCodeId
+        if (sectionId !== undefined && courseCodeId !== undefined) {
             const [sectionRows] = await db.execute(
-                "SELECT * FROM section WHERE section = ? AND courseCodeId = ?",
-                [sectionCode, courseCode]
+                "SELECT * FROM section WHERE id = ? AND courseCodeId = ?",
+                [sectionId, courseCodeId]
             );
             if (sectionRows.length === 0) {
                 return res.status(400).json({
                     message:
-                        "Invalid sectionCode or it does not belong to the provided courseCode",
+                        "Invalid sectionId or it does not belong to the provided courseCodeId",
                 });
             }
         }
@@ -186,18 +216,19 @@ exports.updateAppointment = async (req, res) => {
         const updateFields = {
             groupName,
             leaderLineID,
-            sectionCode,
+            courseCodeId,
+            sectionId,
             peerMentorId,
         };
 
         const definedFields = Object.entries(updateFields).filter(
-            ([key, value]) => value !== undefined
+            ([, value]) => value !== undefined
         );
 
         if (definedFields.length === 0) {
             return res.status(400).json({
                 message:
-                    "At least one field (groupName, leaderLineID, sectionCode, or peerMentorId) is required for update",
+                    "At least one field (groupName, leaderLineID, courseCodeId, sectionId, or peerMentorId) is required for update",
             });
         }
 
@@ -205,10 +236,7 @@ exports.updateAppointment = async (req, res) => {
             "UPDATE appointments SET " +
             definedFields.map(([key]) => `${key} = ?`).join(", ") +
             " WHERE id = ?";
-        const updateValues = [
-            ...definedFields.map(([key, value]) => value),
-            id,
-        ];
+        const updateValues = [...definedFields.map(([, value]) => value), id];
 
         await db.execute(sqlQuery, updateValues);
 
@@ -219,12 +247,17 @@ exports.updateAppointment = async (req, res) => {
                 a.id, 
                 a.groupName, 
                 a.leaderLineID, 
+                c.id as courseId,
                 c.courseCode, 
+                c.name as courseName,
+                s.id as sectionId,
                 s.section, 
+                s.courseCodeId,
+                s.name as sectionName,
                 p.id as peerMentorId, 
                 DATE_FORMAT(p.time, '%H:%i') as time,
                 p.day, 
-                p.name
+                p.name as peerMentorName
             FROM appointments a
             JOIN courseCodes c ON a.courseCode = c.id
             JOIN section s ON a.sectionCode = s.id
@@ -243,13 +276,22 @@ exports.updateAppointment = async (req, res) => {
             id: updatedAppointment.id,
             groupName: updatedAppointment.groupName,
             leaderLineID: updatedAppointment.leaderLineID,
-            courseCode: updatedAppointment.courseCode,
-            section: updatedAppointment.section,
+            course: {
+                id: updatedAppointment.courseId,
+                courseCode: updatedAppointment.courseCode,
+                name: updatedAppointment.courseName,
+            },
+            section: {
+                id: updatedAppointment.sectionId,
+                section: updatedAppointment.section,
+                courseCodeId: updatedAppointment.courseCodeId,
+                name: updatedAppointment.sectionName,
+            },
             peerMentor: {
                 id: updatedAppointment.peerMentorId,
                 time: updatedAppointment.time,
                 day: updatedAppointment.day,
-                name: updatedAppointment.name,
+                name: updatedAppointment.peerMentorName,
             },
         };
 
