@@ -161,7 +161,7 @@ exports.updateAppointment = async (req, res) => {
         // Check if the provided courseCode exists
         if (courseCode) {
             const [courseRows] = await db.execute(
-                "SELECT * FROM course WHERE courseCode = ?",
+                "SELECT * FROM courseCodes WHERE courseCode = ?",
                 [courseCode]
             );
             if (courseRows.length === 0) {
@@ -186,7 +186,7 @@ exports.updateAppointment = async (req, res) => {
         const updateFields = {
             groupName,
             leaderLineID,
-            sectionId: sectionCode,
+            sectionCode,
             peerMentorId,
         };
 
@@ -197,7 +197,7 @@ exports.updateAppointment = async (req, res) => {
         if (definedFields.length === 0) {
             return res.status(400).json({
                 message:
-                    "At least one field (groupName, leaderLineID, sectionId, or peerMentorId) is required for update",
+                    "At least one field (groupName, leaderLineID, sectionCode, or peerMentorId) is required for update",
             });
         }
 
@@ -212,9 +212,25 @@ exports.updateAppointment = async (req, res) => {
 
         await db.execute(sqlQuery, updateValues);
 
-        // Retrieve the updated appointment
+        // Retrieve the updated appointment including peer mentor details
         const [updatedAppointmentRows] = await db.execute(
-            "SELECT * FROM appointments WHERE id = ?",
+            `
+            SELECT 
+                a.id, 
+                a.groupName, 
+                a.leaderLineID, 
+                c.courseCode, 
+                s.section, 
+                p.id as peerMentorId, 
+                DATE_FORMAT(p.time, '%H:%i') as time,
+                p.day, 
+                p.name
+            FROM appointments a
+            JOIN courseCodes c ON a.courseCode = c.id
+            JOIN section s ON a.sectionCode = s.id
+            JOIN peerMentors p ON a.peerMentorId = p.id
+            WHERE a.id = ?
+        `,
             [id]
         );
 
@@ -223,9 +239,23 @@ exports.updateAppointment = async (req, res) => {
         }
 
         const updatedAppointment = updatedAppointmentRows[0];
+        const formattedAppointment = {
+            id: updatedAppointment.id,
+            groupName: updatedAppointment.groupName,
+            leaderLineID: updatedAppointment.leaderLineID,
+            courseCode: updatedAppointment.courseCode,
+            section: updatedAppointment.section,
+            peerMentor: {
+                id: updatedAppointment.peerMentorId,
+                time: updatedAppointment.time,
+                day: updatedAppointment.day,
+                name: updatedAppointment.name,
+            },
+        };
+
         res.json({
             message: "Appointment updated",
-            appointment: updatedAppointment,
+            appointment: formattedAppointment,
         });
     } catch (error) {
         res.status(500).json({ message: "Server error", error });
