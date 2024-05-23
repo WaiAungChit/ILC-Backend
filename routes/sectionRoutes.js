@@ -11,12 +11,9 @@ const isAdmin = require('../middlewares/isAdmin');
  *       type: object
  *       required:
  *         - section
- *         - coursecodeId
  * 
  *       properties:
  *         section:
- *           type: integer
- *         coursecodeId:
  *           type: integer
  */
 

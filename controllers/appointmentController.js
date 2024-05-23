@@ -30,16 +30,15 @@ exports.createAppointment = async (req, res) => {
         if (courseRows.length === 0) {
             return res.status(400).json({ message: "Invalid courseCodeId" });
         }
-
         // Check if the provided sectionCode exists and belongs to the provided courseCodeId
         const [sectionRows] = await db.execute(
-            "SELECT * FROM section WHERE id = ? AND courseCodeId = ?",
-            [sectionCodeId, courseRows[0].id]
+            "SELECT * FROM section WHERE id = ?",
+            [sectionCodeId]
         );
         if (sectionRows.length === 0) {
             return res.status(400).json({
                 message:
-                    "Invalid sectionCode or it does not belong to the provided courseCodeId",
+                    "Invalid Section Code.",
             });
         }
 
@@ -72,7 +71,6 @@ exports.getAppointments = async (req, res) => {
                 c.name as courseName,
                 s.id as sectionId,
                 s.section, 
-                s.courseCodeId,
                 p.id as peerMentorId, 
                 DATE_FORMAT(p.time, '%H:%i') as time,
                 p.day, 
@@ -95,7 +93,6 @@ exports.getAppointments = async (req, res) => {
             section: {
                 id: row.sectionId,
                 section: row.section,
-                courseCodeId: row.courseCodeId,
             },
             peerMentor: {
                 id: row.peerMentorId,
@@ -125,7 +122,6 @@ exports.getAppointment = async (req, res) => {
                 c.name as courseName,
                 s.id as sectionId,
                 s.section, 
-                s.courseCodeId,
                 p.id as peerMentorId, 
                 DATE_FORMAT(p.time, '%H:%i') as time,
                 p.day, 
@@ -155,7 +151,6 @@ exports.getAppointment = async (req, res) => {
             section: {
                 id: rows[0].sectionId,
                 section: rows[0].section,
-                courseCodeId: rows[0].courseCodeId,
             },
             peerMentor: {
                 id: rows[0].peerMentorId,
@@ -192,20 +187,6 @@ exports.updateAppointment = async (req, res) => {
                 return res
                     .status(400)
                     .json({ message: "Invalid courseCodeId" });
-            }
-        }
-
-        // Check if the provided sectionId exists and belongs to the provided courseCodeId
-        if (sectionId !== undefined && courseCodeId !== undefined) {
-            const [sectionRows] = await db.execute(
-                "SELECT * FROM section WHERE id = ? AND courseCodeId = ?",
-                [sectionId, courseCodeId]
-            );
-            if (sectionRows.length === 0) {
-                return res.status(400).json({
-                    message:
-                        "Invalid sectionId or it does not belong to the provided courseCodeId",
-                });
             }
         }
 
@@ -248,7 +229,6 @@ exports.updateAppointment = async (req, res) => {
                 c.name as courseName,
                 s.id as sectionId,
                 s.section, 
-                s.courseCodeId,
                 p.id as peerMentorId, 
                 DATE_FORMAT(p.time, '%H:%i') as time,
                 p.day, 
@@ -279,7 +259,6 @@ exports.updateAppointment = async (req, res) => {
             section: {
                 id: updatedAppointment.sectionId,
                 section: updatedAppointment.section,
-                courseCodeId: updatedAppointment.courseCodeId,
             },
             peerMentor: {
                 id: updatedAppointment.peerMentorId,

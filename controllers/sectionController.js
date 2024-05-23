@@ -2,22 +2,15 @@ const db = require("../config/db");
 
 exports.createSection = async (req, res) => {
     try {
-        const { section, coursecodeId } = req.body;
-        if (!section || !coursecodeId) {
+        const { section } = req.body;
+        if (!section) {
             return res
                 .status(400)
-                .json({ message: "Section and course ID are required" });
-        }
-        const [course] = await db.execute(
-            "SELECT * FROM courseCodes WHERE id = ?",
-            [coursecodeId]
-        );
-        if (course.length === 0) {
-            return res.status(404).json({ message: "Course not found" });
+                .json({ message: "Section is required" });
         }
         await db.execute(
-            "INSERT INTO section (section, coursecodeId) VALUES (?, ?)",
-            [section, coursecodeId]
+            "INSERT INTO section (section) VALUES (?)",
+            [section]
         );
         res.status(201).json({ message: "Section created" });
     } catch (error) {
@@ -28,7 +21,7 @@ exports.createSection = async (req, res) => {
 exports.getAllSections = async (req, res) => {
     try {
         const [rows] = await db.execute(
-            "SELECT section.*, courseCodes.courseCode, courseCodes.name FROM section JOIN courseCodes ON section.coursecodeId = courseCodes.id"
+            "SELECT * FROM section"
         );
         res.json(rows);
     } catch (error) {
@@ -40,7 +33,7 @@ exports.getSection = async (req, res) => {
     try {
         const { id } = req.params;
         const [rows] = await db.execute(
-            "SELECT section.*, courseCodes.courseCode, courseCodes.name FROM section JOIN courseCodes ON section.coursecodeId = courseCodes.id WHERE section.id = ?",
+            "SELECT * FROM section WHERE id = ?",
             [id]
         );
         if (rows.length === 0) {
@@ -55,25 +48,17 @@ exports.getSection = async (req, res) => {
 exports.updateSection = async (req, res) => {
     try {
         const { id } = req.params;
-        const { section, coursecodeId } = req.body;
+        const { section } = req.body;
 
-        if (!section || !coursecodeId) {
+        if (!section) {
             return res
                 .status(400)
-                .json({ message: "Section and course ID are required" });
-        }
-
-        const [course] = await db.execute(
-            "SELECT * FROM courseCodes WHERE id = ?",
-            [coursecodeId]
-        );
-        if (course.length === 0) {
-            return res.status(404).json({ message: "Course not found" });
+                .json({ message: "Section is required" });
         }
 
         await db.execute(
-            "UPDATE section SET section = ?, coursecodeId = ? WHERE id = ?",
-            [section, coursecodeId, id]
+            "UPDATE section SET section = ? WHERE id = ?",
+            [section, id]
         );
 
         // Retrieve the updated section
