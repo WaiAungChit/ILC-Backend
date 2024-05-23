@@ -57,19 +57,12 @@ exports.getPeerMentors = async (req, res) => {
 
     try {
         const [rows] = await db.execute(query);
-        const [total] = await db.execute(
-            "SELECT COUNT(*) as count FROM peerMentors"
-        );
-
         const formattedRows = rows.map((row) => ({
             ...row,
             time: row.time.slice(0, 5),
         }));
 
-        res.json({
-            items: formattedRows,
-            total: total[0].count,
-        });
+        res.json(formattedRows);
     } catch (error) {
         res.status(500).json({ message: "Server error", error });
     }
@@ -107,19 +100,12 @@ exports.getPaginatedPeerMentors = async (req, res) => {
 
     try {
         const [rows] = await db.execute(query);
-        const [total] = await db.execute(
-            "SELECT COUNT(*) as count FROM peerMentors"
-        );
-
         const formattedRows = rows.map((row) => ({
             ...row,
             time: row.time.slice(0, 5),
         }));
 
-        res.json({
-            items: formattedRows,
-            total: total[0].count,
-        });
+        res.json(formattedRows);
     } catch (error) {
         res.status(500).json({ message: "Server error", error });
     }
