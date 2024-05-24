@@ -3,11 +3,23 @@ const db = require("../config/db");
 exports.createCourse = async (req, res) => {
     try {
         const { courseCode, name } = req.body;
-        if (courseCode === undefined || name === undefined) {
+        if (!courseCode || !name) {
             return res
                 .status(400)
-                .json({ message: "Both code and name are required" });
+                .json({ message: "Both courseCode and name are required" });
         }
+
+        const [existingCourse] = await db.execute(
+            "SELECT courseCode FROM courseCodes WHERE courseCode = ?",
+            [courseCode]
+        );
+
+        if (existingCourse.length > 0) {
+            return res
+                .status(409)
+                .json({ message: "CourseCode already exists" });
+        }
+
         await db.execute(
             "INSERT INTO courseCodes (courseCode, name) VALUES (?, ?)",
             [courseCode, name]
@@ -49,12 +61,10 @@ exports.updateCourse = async (req, res) => {
         const { courseCode, name } = req.body;
 
         if (!courseCode && !name) {
-            return res
-                .status(400)
-                .json({
-                    message:
-                        "At least one field (courseCode or name) is required for update",
-                });
+            return res.status(400).json({
+                message:
+                    "At least one field (courseCode or name) is required for update",
+            });
         }
 
         let sqlQuery = "UPDATE courseCodes SET ";
