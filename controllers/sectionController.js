@@ -4,14 +4,21 @@ exports.createSection = async (req, res) => {
     try {
         const { section } = req.body;
         if (!section) {
-            return res
-                .status(400)
-                .json({ message: "Section is required" });
+            return res.status(400).json({ message: "Section is required" });
         }
-        await db.execute(
-            "INSERT INTO section (section) VALUES (?)",
+
+        const [existingSection] = await db.execute(
+            "SELECT section FROM sections WHERE section = ?",
             [section]
         );
+
+        if (existingSection.length > 0) {
+            return res.status(409).json({ message: "Section already exists" });
+        }
+
+        await db.execute("INSERT INTO sections (section) VALUES (?)", [
+            section,
+        ]);
         res.status(201).json({ message: "Section created" });
     } catch (error) {
         res.status(500).json({ message: "Server error", error });
@@ -20,9 +27,7 @@ exports.createSection = async (req, res) => {
 
 exports.getAllSections = async (req, res) => {
     try {
-        const [rows] = await db.execute(
-            "SELECT * FROM section"
-        );
+        const [rows] = await db.execute("SELECT * FROM sections");
         res.json(rows);
     } catch (error) {
         res.status(500).json({ message: "Server error", error });
@@ -32,10 +37,9 @@ exports.getAllSections = async (req, res) => {
 exports.getSection = async (req, res) => {
     try {
         const { id } = req.params;
-        const [rows] = await db.execute(
-            "SELECT * FROM section WHERE id = ?",
-            [id]
-        );
+        const [rows] = await db.execute("SELECT * FROM sections WHERE id = ?", [
+            id,
+        ]);
         if (rows.length === 0) {
             return res.status(404).json({ message: "Section not found" });
         }
@@ -51,19 +55,17 @@ exports.updateSection = async (req, res) => {
         const { section } = req.body;
 
         if (!section) {
-            return res
-                .status(400)
-                .json({ message: "Section is required" });
+            return res.status(400).json({ message: "Section is required" });
         }
 
-        await db.execute(
-            "UPDATE section SET section = ? WHERE id = ?",
-            [section, id]
-        );
+        await db.execute("UPDATE sections SET section = ? WHERE id = ?", [
+            section,
+            id,
+        ]);
 
         // Retrieve the updated section
         const [updatedSectionRows] = await db.execute(
-            "SELECT * FROM section WHERE id = ?",
+            "SELECT * FROM sections WHERE id = ?",
             [id]
         );
 
@@ -81,13 +83,13 @@ exports.updateSection = async (req, res) => {
 exports.deleteSection = async (req, res) => {
     try {
         const { id } = req.params;
-        const [rows] = await db.execute("SELECT * FROM section WHERE id = ?", [
+        const [rows] = await db.execute("SELECT * FROM sections WHERE id = ?", [
             id,
         ]);
         if (rows.length === 0) {
             return res.status(404).json({ message: "Section not found" });
         }
-        await db.execute("DELETE FROM section WHERE id = ?", [id]);
+        await db.execute("DELETE FROM sections WHERE id = ?", [id]);
         res.json({ message: "Section deleted" });
     } catch (error) {
         res.status(500).json({ message: "Server error", error });

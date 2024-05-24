@@ -1,7 +1,7 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const appointmentController = require('../controllers/appointmentController');
-const isAdmin = require('../middlewares/isAdmin');
+const appointmentController = require("../controllers/appointmentController");
+const isAdmin = require("../middlewares/isAdmin");
 
 /**
  * @swagger
@@ -24,12 +24,12 @@ const isAdmin = require('../middlewares/isAdmin');
  *           example: "jojo"
  *         courseCodeId:
  *           type: integer
- *           example: 3  
- *         sectionCodeId:
+ *           example: 3
+ *         sectionId:
  *           type: integer
- *           example: 4 
+ *           example: 4
  *         peerMentorId:
- *           type: integer 
+ *           type: integer
  *           example: 7
  */
 /**
@@ -64,7 +64,8 @@ const isAdmin = require('../middlewares/isAdmin');
  *       500:
  *         description: There was a server error retrieving the appointments.
  */
-router.route('/')
+router
+    .route("/")
     .post(appointmentController.createAppointment)
     .get(isAdmin, appointmentController.getAppointments);
 
@@ -132,7 +133,8 @@ router.route('/')
  *       500:
  *         description: There was a server error deleting the appointment.
  */
-router.route('/:id')
+router
+    .route("/:id")
     .get(isAdmin, appointmentController.getAppointment)
     .put(isAdmin, appointmentController.updateAppointment)
     .delete(isAdmin, appointmentController.deleteAppointment);

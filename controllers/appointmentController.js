@@ -6,19 +6,19 @@ exports.createAppointment = async (req, res) => {
             groupName,
             leaderLineID,
             courseCodeId,
-            sectionCodeId,
+            sectionId,
             peerMentorId,
         } = req.body;
         if (
             !groupName ||
             !leaderLineID ||
             !courseCodeId ||
-            !sectionCodeId ||
+            !sectionId ||
             !peerMentorId
         ) {
             return res.status(400).json({
                 message:
-                    "groupName, leaderLineID, courseCodeId, sectionCodeId, and peerMentorId are required",
+                    "groupName, leaderLineID, courseCodeId, sectionId, and peerMentorId are required",
             });
         }
 
@@ -30,20 +30,19 @@ exports.createAppointment = async (req, res) => {
         if (courseRows.length === 0) {
             return res.status(400).json({ message: "Invalid courseCodeId" });
         }
-        // Check if the provided sectionCode exists and belongs to the provided courseCodeId
+        // Check if the provided sectionId exists and belongs to the provided courseCodeId
         const [sectionRows] = await db.execute(
-            "SELECT * FROM section WHERE id = ?",
-            [sectionCodeId]
+            "SELECT * FROM sections WHERE id = ?",
+            [sectionId]
         );
         if (sectionRows.length === 0) {
             return res.status(400).json({
-                message:
-                    "Invalid Section Code.",
+                message: "Invalid sectionId.",
             });
         }
 
         await db.execute(
-            "INSERT INTO appointments (groupName, leaderLineID, courseCode, sectionCode, peerMentorId) VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO appointments (groupName, leaderLineID, courseCodeId, sectionId, peerMentorId) VALUES (?, ?, ?, ?, ?)",
             [
                 groupName,
                 leaderLineID,
@@ -76,8 +75,8 @@ exports.getAppointments = async (req, res) => {
                 p.day, 
                 p.name as peerMentorName
             FROM appointments a
-            JOIN courseCodes c ON a.courseCode = c.id
-            JOIN section s ON a.sectionCode = s.id
+            JOIN courseCodes c ON a.courseCodeId = c.id
+            JOIN sections s ON a.sectionId = s.id
             JOIN peerMentors p ON a.peerMentorId = p.id
         `);
 
@@ -127,8 +126,8 @@ exports.getAppointment = async (req, res) => {
                 p.day, 
                 p.name as peerMentorName
             FROM appointments a
-            JOIN courseCodes c ON a.courseCode = c.id
-            JOIN section s ON a.sectionCode = s.id
+            JOIN courseCodes c ON a.courseCodeId = c.id
+            JOIN sections s ON a.sectionId = s.id
             JOIN peerMentors p ON a.peerMentorId = p.id
             WHERE a.id = ?
         `,
@@ -234,8 +233,8 @@ exports.updateAppointment = async (req, res) => {
                 p.day, 
                 p.name as peerMentorName
             FROM appointments a
-            JOIN courseCodes c ON a.courseCode = c.id
-            JOIN section s ON a.sectionCode = s.id
+            JOIN courseCodes c ON a.courseCodeId = c.id
+            JOIN sections s ON a.sectionId = s.id
             JOIN peerMentors p ON a.peerMentorId = p.id
             WHERE a.id = ?
         `,
