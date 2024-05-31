@@ -41,6 +41,12 @@ exports.createAppointment = async (req, res) => {
             });
         }
 
+        // Set the peerMentor as unavailable
+        await db.execute(
+            "UPDATE peerMentors SET isAvailable = 0 WHERE id = ?",
+            [peerMentorId]
+        );
+
         await db.execute(
             "INSERT INTO appointments (groupName, leaderLineID, courseCodeId, sectionId, peerMentorId) VALUES (?, ?, ?, ?, ?)",
             [

@@ -39,7 +39,7 @@ exports.getPeerMentors = async (req, res) => {
         return res.status(400).json({ message: "Invalid limit value" });
     }
 
-    let query = "SELECT id, time, day, name FROM peerMentors";
+    let query = "SELECT id, time, day, isAvailable, name FROM peerMentors";
 
     let filters = [];
     if (day) filters.push(`day = '${day}'`);
@@ -86,7 +86,7 @@ exports.getPaginatedPeerMentors = async (req, res) => {
 
     const offset = (page - 1) * pageSize;
 
-    let query = "SELECT id, time, day, name FROM peerMentors";
+    let query = "SELECT id, time, day, isAvailable, name FROM peerMentors";
 
     let filters = [];
     if (day) filters.push(`day = '${day}'`);
@@ -115,7 +115,7 @@ exports.getPeerMentor = async (req, res) => {
     const { id } = req.params;
     try {
         const [rows] = await db.execute(
-            "SELECT id, time, day, name FROM peerMentors WHERE id = ?",
+            "SELECT id, time, day, isAvailable, name FROM peerMentors WHERE id = ?",
             [id]
         );
         if (rows.length === 0) {
@@ -138,7 +138,7 @@ exports.getPeerMentorsByTimeAndDay = async (req, res) => {
     }
     try {
         let query =
-            "SELECT id, time, day, name FROM peerMentors WHERE time = ? AND day = ?";
+            "SELECT id, time, day, isAvailable, name FROM peerMentors WHERE time = ? AND day = ?";
         let params = [time, day];
 
         if (name) {
@@ -175,7 +175,7 @@ exports.updatePeerMentor = async (req, res) => {
     if (definedFields.length === 0) {
         return res.status(400).json({
             message:
-                "At least one field (time, day, or name) is required for update",
+                "At least one field (time, day, isAvailable, or name) is required for update",
         });
     }
 
@@ -193,7 +193,7 @@ exports.updatePeerMentor = async (req, res) => {
 
         // Retrieve the updated peer mentor
         const [updatedPeerMentorRows] = await db.execute(
-            "SELECT id, name, DATE_FORMAT(time, '%H:%i') AS time, day FROM peerMentors WHERE id = ?",
+            "SELECT id, isAvailable, name, DATE_FORMAT(time, '%H:%i') AS time, day FROM peerMentors WHERE id = ?",
             [id]
         );
 
