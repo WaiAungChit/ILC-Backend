@@ -231,6 +231,20 @@ exports.updateAppointment = async (req, res) => {
             });
         }
 
+        // Retrieve the current appointment to get the old peerMentorId
+        const [currentAppointmentRows] = await db.execute(
+            "SELECT * FROM appointments WHERE id = ?",
+            [id],
+        );
+
+        if (currentAppointmentRows.length === 0) {
+            return res.status(404).json({ message: "Appointment not found" });
+        }
+
+        const currentAppointment = currentAppointmentRows[0];
+        const oldPeerMentorId = currentAppointment.peerMentorId;
+
+        // Update the appointment
         const sqlQuery =
             "UPDATE appointments SET " +
             definedFields.map(([key]) => `${key} = ?`).join(", ") +
@@ -238,6 +252,21 @@ exports.updateAppointment = async (req, res) => {
         const updateValues = [...definedFields.map(([, value]) => value), id];
 
         await db.execute(sqlQuery, updateValues);
+
+        // Update the availability of the mentors if peerMentorId is updated
+        if (peerMentorId !== undefined && peerMentorId !== oldPeerMentorId) {
+            // Set the old peer mentor as available
+            await db.execute(
+                "UPDATE peerMentors SET isAvailable = 1 WHERE id = ?",
+                [oldPeerMentorId],
+            );
+
+            // Set the new peer mentor as unavailable
+            await db.execute(
+                "UPDATE peerMentors SET isAvailable = 0 WHERE id = ?",
+                [peerMentorId],
+            );
+        }
 
         // Retrieve the updated appointment including peer mentor details
         const [updatedAppointmentRows] = await db.execute(
@@ -303,16 +332,27 @@ exports.deleteAppointment = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const [rows] = await db.execute(
+        const [appointmentRows] = await db.execute(
             "SELECT * FROM appointments WHERE id = ?",
             [id],
         );
-        if (rows.length === 0) {
+
+        if (appointmentRows.length === 0) {
             return res.status(404).json({ message: "Appointment not found" });
         }
 
+        const peerMentorId = appointmentRows[0].peerMentorId;
+
         await db.execute("DELETE FROM appointments WHERE id = ?", [id]);
-        res.json({ message: "Appointment deleted" });
+
+        await db.execute(
+            "UPDATE peerMentors SET isAvailable = 1 WHERE id = ?",
+            [peerMentorId],
+        );
+
+        res.json({
+            message: "Appointment deleted and mentor availability updated",
+        });
     } catch (error) {
         res.status(500).json({ message: "Server error", error });
     }
