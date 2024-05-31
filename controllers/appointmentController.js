@@ -9,6 +9,7 @@ exports.createAppointment = async (req, res) => {
             sectionId,
             peerMentorId,
         } = req.body;
+
         if (
             !groupName ||
             !leaderLineID ||
@@ -25,26 +26,41 @@ exports.createAppointment = async (req, res) => {
         // Check if the provided courseCodeId exists
         const [courseRows] = await db.execute(
             "SELECT * FROM courseCodes WHERE id = ?",
-            [courseCodeId]
+            [courseCodeId],
         );
+
         if (courseRows.length === 0) {
             return res.status(400).json({ message: "Invalid courseCodeId" });
         }
+
         // Check if the provided sectionId exists and belongs to the provided courseCodeId
         const [sectionRows] = await db.execute(
             "SELECT * FROM sections WHERE id = ?",
-            [sectionId]
+            [sectionId],
         );
+
         if (sectionRows.length === 0) {
             return res.status(400).json({
-                message: "Invalid sectionId.",
+                message: "Invalid sectionId",
+            });
+        }
+
+        // Check if the peerMentor is available
+        const [mentorRows] = await db.execute(
+            "SELECT * FROM peerMentors WHERE id = ? AND isAvailable = 1",
+            [peerMentorId],
+        );
+
+        if (mentorRows.length === 0) {
+            return res.status(400).json({
+                message: "Selected peer mentor is not available",
             });
         }
 
         // Set the peerMentor as unavailable
         await db.execute(
             "UPDATE peerMentors SET isAvailable = 0 WHERE id = ?",
-            [peerMentorId]
+            [peerMentorId],
         );
 
         await db.execute(
@@ -55,8 +71,9 @@ exports.createAppointment = async (req, res) => {
                 courseRows[0].id,
                 sectionRows[0].id,
                 peerMentorId,
-            ]
+            ],
         );
+
         res.status(201).json({ message: "Appointment created" });
     } catch (error) {
         console.log(error);
@@ -67,18 +84,18 @@ exports.createAppointment = async (req, res) => {
 exports.getAppointments = async (req, res) => {
     try {
         const [rows] = await db.execute(`
-            SELECT 
-                a.id, 
-                a.groupName, 
-                a.leaderLineID, 
+            SELECT
+                a.id,
+                a.groupName,
+                a.leaderLineID,
                 c.id as courseId,
-                c.courseCode, 
+                c.courseCode,
                 c.name as courseName,
                 s.id as sectionId,
-                s.section, 
-                p.id as peerMentorId, 
+                s.section,
+                p.id as peerMentorId,
                 DATE_FORMAT(p.time, '%H:%i') as time,
-                p.day, 
+                p.day,
                 p.name as peerMentorName
             FROM appointments a
             JOIN courseCodes c ON a.courseCodeId = c.id
@@ -118,18 +135,18 @@ exports.getAppointment = async (req, res) => {
         const { id } = req.params;
         const [rows] = await db.execute(
             `
-            SELECT 
-                a.id, 
-                a.groupName, 
-                a.leaderLineID, 
+            SELECT
+                a.id,
+                a.groupName,
+                a.leaderLineID,
                 c.id as courseId,
-                c.courseCode, 
+                c.courseCode,
                 c.name as courseName,
                 s.id as sectionId,
-                s.section, 
-                p.id as peerMentorId, 
+                s.section,
+                p.id as peerMentorId,
                 DATE_FORMAT(p.time, '%H:%i') as time,
-                p.day, 
+                p.day,
                 p.name as peerMentorName
             FROM appointments a
             JOIN courseCodes c ON a.courseCodeId = c.id
@@ -137,7 +154,7 @@ exports.getAppointment = async (req, res) => {
             JOIN peerMentors p ON a.peerMentorId = p.id
             WHERE a.id = ?
         `,
-            [id]
+            [id],
         );
 
         if (rows.length === 0) {
@@ -186,7 +203,7 @@ exports.updateAppointment = async (req, res) => {
         if (courseCodeId !== undefined) {
             const [courseRows] = await db.execute(
                 "SELECT * FROM courseCodes WHERE id = ?",
-                [courseCodeId]
+                [courseCodeId],
             );
             if (courseRows.length === 0) {
                 return res
@@ -204,7 +221,7 @@ exports.updateAppointment = async (req, res) => {
         };
 
         const definedFields = Object.entries(updateFields).filter(
-            ([, value]) => value !== undefined
+            ([, value]) => value !== undefined,
         );
 
         if (definedFields.length === 0) {
@@ -225,18 +242,18 @@ exports.updateAppointment = async (req, res) => {
         // Retrieve the updated appointment including peer mentor details
         const [updatedAppointmentRows] = await db.execute(
             `
-            SELECT 
-                a.id, 
-                a.groupName, 
-                a.leaderLineID, 
+            SELECT
+                a.id,
+                a.groupName,
+                a.leaderLineID,
                 c.id as courseId,
-                c.courseCode, 
+                c.courseCode,
                 c.name as courseName,
                 s.id as sectionId,
-                s.section, 
-                p.id as peerMentorId, 
+                s.section,
+                p.id as peerMentorId,
                 DATE_FORMAT(p.time, '%H:%i') as time,
-                p.day, 
+                p.day,
                 p.name as peerMentorName
             FROM appointments a
             JOIN courseCodes c ON a.courseCodeId = c.id
@@ -244,7 +261,7 @@ exports.updateAppointment = async (req, res) => {
             JOIN peerMentors p ON a.peerMentorId = p.id
             WHERE a.id = ?
         `,
-            [id]
+            [id],
         );
 
         if (updatedAppointmentRows.length === 0) {
@@ -288,7 +305,7 @@ exports.deleteAppointment = async (req, res) => {
 
         const [rows] = await db.execute(
             "SELECT * FROM appointments WHERE id = ?",
-            [id]
+            [id],
         );
         if (rows.length === 0) {
             return res.status(404).json({ message: "Appointment not found" });
