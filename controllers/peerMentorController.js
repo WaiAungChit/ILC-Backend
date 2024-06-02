@@ -11,14 +11,14 @@ exports.createPeerMentor = async (req, res) => {
 
         const [result] = await db.execute(
             "INSERT INTO peerMentors (time, day, name) VALUES (?, ?, ?)",
-            [time, day, name]
+            [time, day, name],
         );
 
         const newMentorId = result.insertId;
 
         const [newMentor] = await db.execute(
             "SELECT id, name, day, TIME_FORMAT(time, '%H:%i') as time FROM peerMentors WHERE id = ?",
-            [newMentorId]
+            [newMentorId],
         );
 
         res.status(201).json({
@@ -116,7 +116,7 @@ exports.getPeerMentor = async (req, res) => {
     try {
         const [rows] = await db.execute(
             "SELECT id, time, day, isAvailable, name FROM peerMentors WHERE id = ?",
-            [id]
+            [id],
         );
         if (rows.length === 0) {
             return res.status(404).json({ message: "Peer mentor not found" });
@@ -169,7 +169,7 @@ exports.updatePeerMentor = async (req, res) => {
     const updateFields = { time, day, name };
 
     const definedFields = Object.entries(updateFields).filter(
-        ([key, value]) => value !== undefined
+        ([key, value]) => value !== undefined,
     );
 
     if (definedFields.length === 0) {
@@ -194,7 +194,7 @@ exports.updatePeerMentor = async (req, res) => {
         // Retrieve the updated peer mentor
         const [updatedPeerMentorRows] = await db.execute(
             "SELECT id, isAvailable, name, DATE_FORMAT(time, '%H:%i') AS time, day FROM peerMentors WHERE id = ?",
-            [id]
+            [id],
         );
 
         if (updatedPeerMentorRows.length === 0) {
@@ -216,7 +216,7 @@ exports.deletePeerMentor = async (req, res) => {
     try {
         const [rows] = await db.execute(
             "SELECT * FROM peerMentors WHERE id = ?",
-            [id]
+            [id],
         );
         if (rows.length === 0) {
             return res.status(404).json({ message: "Peer mentor not found" });

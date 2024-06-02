@@ -11,7 +11,7 @@ exports.createCourse = async (req, res) => {
 
         const [existingCourse] = await db.execute(
             "SELECT courseCode FROM courseCodes WHERE courseCode = ?",
-            [courseCode]
+            [courseCode],
         );
 
         if (existingCourse.length > 0) {
@@ -20,11 +20,21 @@ exports.createCourse = async (req, res) => {
                 .json({ message: "CourseCode already exists" });
         }
 
-        await db.execute(
+        // Insert the new course
+        const [result] = await db.execute(
             "INSERT INTO courseCodes (courseCode, name) VALUES (?, ?)",
-            [courseCode, name]
+            [courseCode, name],
         );
-        res.status(201).json({ message: "Course created" });
+
+        // Retrieve the newly created course
+        const [courseRows] = await db.execute(
+            "SELECT * FROM courseCodes WHERE id = ?",
+            [result.insertId],
+        );
+
+        const course = courseRows[0];
+
+        res.status(201).json({ message: "Course created", course });
     } catch (error) {
         res.status(500).json({ message: "Server error", error });
     }
@@ -44,7 +54,7 @@ exports.getCourse = async (req, res) => {
     try {
         const [rows] = await db.execute(
             "SELECT * FROM courseCodes WHERE id = ?",
-            [id]
+            [id],
         );
         if (rows.length === 0) {
             return res.status(404).json({ message: "Course not found" });
@@ -89,7 +99,7 @@ exports.updateCourse = async (req, res) => {
         // Retrieve the updated course
         const [updatedCourseRows] = await db.execute(
             "SELECT * FROM courseCodes WHERE id = ?",
-            [id]
+            [id],
         );
 
         if (updatedCourseRows.length === 0) {
@@ -109,7 +119,7 @@ exports.deleteCourse = async (req, res) => {
     try {
         const [rows] = await db.execute(
             "SELECT * FROM courseCodes WHERE id = ?",
-            [id]
+            [id],
         );
         if (rows.length === 0) {
             return res.status(404).json({ message: "Course not found" });

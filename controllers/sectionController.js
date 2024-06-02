@@ -3,24 +3,43 @@ const db = require("../config/db");
 exports.createSection = async (req, res) => {
     try {
         const { section } = req.body;
+
+        // Validate input
         if (!section) {
             return res.status(400).json({ message: "Section is required" });
         }
 
+        // Check if the section already exists
         const [existingSection] = await db.execute(
             "SELECT section FROM sections WHERE section = ?",
-            [section]
+            [section],
         );
 
         if (existingSection.length > 0) {
             return res.status(409).json({ message: "Section already exists" });
         }
 
-        await db.execute("INSERT INTO sections (section) VALUES (?)", [
-            section,
-        ]);
-        res.status(201).json({ message: "Section created" });
+        // Insert the new section
+        const [result] = await db.execute(
+            "INSERT INTO sections (section) VALUES (?)",
+            [section],
+        );
+
+        // Retrieve the newly created section
+        const [sectionRows] = await db.execute(
+            "SELECT * FROM sections WHERE id = ?",
+            [result.insertId],
+        );
+
+        const newSection = sectionRows[0];
+
+        // Send the response with the created section data
+        res.status(201).json({
+            message: "Section created",
+            section: newSection,
+        });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: "Server error", error });
     }
 };
@@ -66,7 +85,7 @@ exports.updateSection = async (req, res) => {
         // Retrieve the updated section
         const [updatedSectionRows] = await db.execute(
             "SELECT * FROM sections WHERE id = ?",
-            [id]
+            [id],
         );
 
         if (updatedSectionRows.length === 0) {

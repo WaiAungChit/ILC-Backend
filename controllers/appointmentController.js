@@ -63,18 +63,21 @@ exports.createAppointment = async (req, res) => {
             [peerMentorId],
         );
 
-        await db.execute(
+        // Insert the new appointment
+        const [result] = await db.execute(
             "INSERT INTO appointments (groupName, leaderLineID, courseCodeId, sectionId, peerMentorId) VALUES (?, ?, ?, ?, ?)",
-            [
-                groupName,
-                leaderLineID,
-                courseRows[0].id,
-                sectionRows[0].id,
-                peerMentorId,
-            ],
+            [groupName, leaderLineID, courseCodeId, sectionId, peerMentorId],
         );
 
-        res.status(201).json({ message: "Appointment created" });
+        // Retrieve the newly created appointment
+        const [appointmentRows] = await db.execute(
+            "SELECT * FROM appointments WHERE id = ?",
+            [result.insertId],
+        );
+
+        const appointment = appointmentRows[0];
+
+        res.status(201).json({ message: "Appointment created", appointment });
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "Server error", error });
