@@ -17,7 +17,7 @@ exports.createPeerMentor = async (req, res) => {
         const newMentorId = result.insertId;
 
         const [newMentor] = await db.execute(
-            "SELECT id, name, day, TIME_FORMAT(time, '%H:%i') as time FROM peerMentors WHERE id = ?",
+            "SELECT id, name, day, TIME_FORMAT(time, '%H:%i') as time, isAvailable FROM peerMentors WHERE id = ?",
             [newMentorId],
         );
 
